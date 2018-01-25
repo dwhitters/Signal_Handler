@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 /** The pipe index for the read file descriptor. */
 #define READ 0
@@ -41,6 +42,7 @@ void Sig_Handler(int sig_num)
             printf(" received a SIGUSR2 signal\n");
             break;
         case SIGINT:
+            printf(" received.\n");
             Int_Received = 1u; /* Signal that this interrupt has occurred. */
             break;
     }
@@ -75,7 +77,7 @@ int main(int argc, char * argv[])
         int rand_sec = 0; /* Will be set to a value of 1-5. */
         pid_t parent_pid = getppid(); /* Get the parent process ID. */
         srand(time(NULL)); /* Seed the random number generator. */
-        char * msg = ""; /* Used to read the pipe data. */
+        char msg[2]; /* Used to read the pipe data. */
 
         /* Make stdin an alias for the pipe. */
         dup2(fd[READ], STDIN_FILENO);
@@ -98,10 +100,16 @@ int main(int argc, char * argv[])
                 kill(parent_pid, SIGUSR2);
             }
 
-            /* If data was read... */
-            if(read(fd[READ], msg, 1) != 0)
+            /* read 2 bytes into msg */
+            if (read(STDIN_FILENO, &msg, 2) < 0)
             {
-                /* The only time this receives data is when an interrupt occurred. */
+                perror("read failed\n");
+                exit(EXIT_FAILURE);
+            }
+            /* compare msg to Q to check for quit command */
+            if (strcmp(msg, "Q") == 0)
+            {
+                /* exit successfully */
                 exit(EXIT_SUCCESS); /* Exit the child process. */
             }
         }
@@ -119,7 +127,7 @@ int main(int argc, char * argv[])
     /* Continually wait for signals to occur. */
     while(1)
     {
-        printf("waiting...");
+        printf("waiting... ");
         (void)pause();
 
         if(Int_Received)
@@ -131,6 +139,9 @@ int main(int argc, char * argv[])
             /* Wait for the child process to terminate. */
             pid = wait(&status);
             break;
+        }else {
+            /* Send character to let the child proces know to continue running */
+            write(fd[WRITE], "R", 2);
         }
     }
 
