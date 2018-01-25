@@ -36,10 +36,10 @@ void Sig_Handler(int sig_num)
     switch(sig_num)
     {
         case SIGUSR1:
-            printf(" received a SIGUSR1 signal\n");
+            printf("received a SIGUSR1 signal\n");
             break;
         case SIGUSR2:
-            printf(" received a SIGUSR2 signal\n");
+            printf("received a SIGUSR2 signal\n");
             break;
         case SIGINT:
             printf(" received.\n");
@@ -128,6 +128,8 @@ int main(int argc, char * argv[])
     while(1)
     {
         printf("waiting... ");
+        /* flush to print immediately */
+        fflush(stdout);
         (void)pause();
 
         if(Int_Received)
