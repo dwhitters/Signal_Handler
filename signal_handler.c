@@ -142,7 +142,7 @@ int main(int argc, char * argv[])
             pid = wait(&status);
             break;
         }else {
-            /* Send character to let the child proces know to continue running */
+            /* Send character to let the child process know to continue running */
             write(fd[WRITE], "R", 2);
         }
     }
